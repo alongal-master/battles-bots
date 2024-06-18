@@ -69,6 +69,9 @@ class SpaceBattleUI(QMainWindow):
             painter.drawPixmap(x, y, self.bot_images[bot_obj])
 
             # Draw bot name
+            bot_font = painter.font()
+            bot_font.setPointSize(12)  # Set the font size to 12 or any desired size
+            painter.setFont(bot_font)
             painter.setPen(Qt.white)
             painter.drawText(x, y - 15, bot_obj.get_name())
 
@@ -88,11 +91,17 @@ class SpaceBattleUI(QMainWindow):
 
             painter.drawRect(x, y - 10, health_width, 20)  # Increase height of health bar
 
+
+
             # Draw health percentage
             painter.setPen(QPen(QColor(107, 107, 107)))
             painter.drawText(x + 5, y + 5, f"{health}%")  # Percentage inside the bar
 
             # Draw ammo count
+            ammo_font = painter.font()
+            ammo_font.setPointSize(10)  # Set the font size to 12 or any desired size
+            painter.setFont(ammo_font)
+            painter.setPen(QPen(QColor(240, 240, 240)))
             painter.drawText(x + 10, y + 60, f"Ammo: {bot_obj.get_ammo()}")
 
         if self.laser_animation_active and self.laser_current_pos:
