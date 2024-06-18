@@ -1,6 +1,6 @@
 import random
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget
-from PyQt5.QtGui import QPainter, QPixmap, QBrush, QColor
+from PyQt5.QtGui import QPainter, QPixmap, QBrush, QColor, QPen
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QEventLoop
 
 class SpaceBattleUI(QMainWindow):
@@ -10,9 +10,9 @@ class SpaceBattleUI(QMainWindow):
         super().__init__()
         self.game_controller = game_controller
         self.setWindowTitle("Space Battle")
-        self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, 900, 800)
         self.predefined_positions = [
-            (70, 130), (400, 80), (700, 100), (100, 400), (600, 300),
+            (70, 200), (300, 100), (650, 120), (100, 350), (450, 400),
             (100, 500), (200, 600), (300, 500), (400, 600), (500, 500)
         ]
 
@@ -39,15 +39,19 @@ class SpaceBattleUI(QMainWindow):
         self.initUI()
 
     def initUI(self):
-        layout = QVBoxLayout()
+        main_layout = QVBoxLayout()  # Create the main vertical layout
 
-        self.next_move_button = QPushButton("Next Move")
+        self.central_widget = QWidget(self)  # Create a central widget for the game area
+        self.setCentralWidget(self.central_widget)  # Set the central widget for the main window
+
+        game_area_layout = QVBoxLayout(self.central_widget)  # Create a layout for the game area
+        self.central_widget.setLayout(game_area_layout)
+
+        self.next_move_button = QPushButton("Next Move")  # Create the "Next Move" button
         self.next_move_button.clicked.connect(self.game_controller.play_next_turn)
-        layout.addWidget(self.next_move_button)
 
-        container = QWidget()
-        container.setLayout(layout)
-        self.setCentralWidget(container)
+        game_area_layout.addStretch(1)  # Add stretch to push the button to the bottom
+        game_area_layout.addWidget(self.next_move_button)  # Add the button at the bottom
 
         self.assign_predefined_positions()
 
@@ -85,7 +89,7 @@ class SpaceBattleUI(QMainWindow):
             painter.drawRect(x, y - 10, health_width, 20)  # Increase height of health bar
 
             # Draw health percentage
-            painter.setPen(Qt.white)
+            painter.setPen(QPen(QColor(107, 107, 107)))
             painter.drawText(x + 5, y + 5, f"{health}%")  # Percentage inside the bar
 
             # Draw ammo count

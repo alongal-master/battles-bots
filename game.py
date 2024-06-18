@@ -61,26 +61,27 @@ class BattleGame:
             self.current_round_queue = random_ordered_bots
             self.current_round_active = True
 
-        # If it's an existing round, pick the player to play for
-        bot = self.current_round_queue.pop(0)
-
-        not_played = True
-        while not_played:
-            if bot.is_alive():  # Bot can only attack if it's alive
-                # Create list of available opponents
-                opponents = [opponent for opponent in self._bots if opponent is not bot and opponent.is_alive()]
-                if opponents:  # only attack if there are opponents left
-                    print(f"Next up is {bot.get_name()}!")
-                    print("", flush=True)
-                    self.perform_attack(bot, opponents)
-                    self.print_health()
-                    self.gui.update()
-                    not_played = False
-
         # No more players for this round, so it's over
         if len(self.current_round_queue) == 0:
             self.current_round_active = False
             self.round += 1
+
+        # If it's an existing round, pick the player to play for
+        else:
+            bot = self.current_round_queue.pop(0)
+            not_played = True
+            while not_played:
+                if bot.is_alive():  # Bot can only attack if it's alive
+                    # Create list of available opponents
+                    opponents = [opponent for opponent in self._bots if opponent is not bot and opponent.is_alive()]
+                    if opponents:  # only attack if there are opponents left
+                        print(f"Next up is {bot.get_name()}!")
+                        print("", flush=True)
+                        self.perform_attack(bot, opponents)
+                        self.print_health()
+                        self.gui.update()
+                        not_played = False
+
     def perform_attack(self, bot, opponents):
         """"
         Performs a single attack of the given bot, with the available opponents.
