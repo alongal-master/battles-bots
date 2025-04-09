@@ -4,7 +4,7 @@ import random
 
 class SpaceBotInterface(ABC):
     initial_health = 100
-    initial_ammo = 80
+    initial_ammo = 100
 
     def __init__(self, name):
         """"

@@ -12,6 +12,10 @@ class BattleGame:
         self.round = 1
         self.current_round_active = False
         self.current_round_queue = None
+    
+    def log(self, text):
+        self.gui.log_message(text)
+
     def print_health(self):
         """"
         Prints the health charts for all players
@@ -27,24 +31,24 @@ class BattleGame:
         """
         # Check that ammo level used actually exists
         if ammo > attacker.get_ammo():
-            print(f"ERROR! Illegal attack from {attacker.get_name()}, ammo {ammo} is too high")
+            self.log(f"ERROR! Illegal attack from {attacker.get_name()}, ammo {ammo} is too high")
             return False
 
         # Checks type of target object
         if target is None:
-            print(f"Attacker {attacker.get_name()} decided to attack None")
+            self.log(f"Attacker {attacker.get_name()} decided to attack None")
             return False
 
         # Checks type of target object
         if not isinstance(target, bots.SpaceBotInterface):
-            print(f"ERROR! Attacker {attacker.get_name()} returned wrong type for attack target: {type(target)}, expected SpaceBotInterface")
+            self.log(f"ERROR! Attacker {attacker.get_name()} returned wrong type for attack target: {type(target)}, expected SpaceBotInterface")
             return False
 
         # Checks that the ammo is int or something that converts to int
         try:
             ammo = int(ammo)
         except:
-            print(f"ERROR! Attacker {attacker.get_name()} returned wrong type for attack ammo: {type(ammo)}, expected int")
+            self.log(f"ERROR! Attacker {attacker.get_name()} returned wrong type for attack ammo: {type(ammo)}, expected int")
             return False
         return True
 
@@ -54,34 +58,44 @@ class BattleGame:
         """
         # If it's a new round (last round is over)
         if not self.current_round_active:
-            print(f"Starting round {self.round}. Randomizing the order again.")
             # Create a randomized list of the bots for turn order
-            random_ordered_bots = self._bots[:]
+            random_ordered_bots = [bot for bot in self._bots if bot.is_alive()]
             random.shuffle(random_ordered_bots)
             self.current_round_queue = random_ordered_bots
             self.current_round_active = True
+            self.log(f"Next up is {self.current_round_queue[0].get_name()}")
+
 
         # No more players for this round, so it's over
-        if len(self.current_round_queue) == 0:
+        if not self.current_round_queue:
             self.current_round_active = False
             self.round += 1
+            self.gui.update_round_display(self.round)
+            self.log(f"Round {self.round-1} is over.")
+            self.log(f"Starting round {self.round}! Randomizing the order of bots.")
+
 
         # If it's an existing round, pick the player to play for
         else:
             bot = self.current_round_queue.pop(0)
             not_played = True
-            while not_played:
-                if bot.is_alive():  # Bot can only attack if it's alive
-                    # Create list of available opponents
-                    opponents = [opponent for opponent in self._bots if opponent is not bot and opponent.is_alive()]
-                    if opponents:  # only attack if there are opponents left
-                        print(f"Next up is {bot.get_name()}!")
-                        print("", flush=True)
-                        self.perform_attack(bot, opponents)
-                        self.print_health()
-                        self.gui.update()
-                        not_played = False
+            if bot.is_alive():  # Bot can only attack if it's alive
+                # Create list of available opponents
+                opponents = [opponent for opponent in self._bots if opponent is not bot and opponent.is_alive()]
+                if opponents:  # only attack if there are opponents left
+                    self.log("")
+                    self.perform_attack(bot, opponents)
+                    self.print_health()
+                    self.gui.update()
 
+        # Remove dead players from the queue
+        new_queue = []
+        for bot in self.current_round_queue:
+            if bot.is_alive():
+                new_queue.append(bot)
+        self.current_round_queue = new_queue
+        if len(self.current_round_queue) > 0:
+            self.log(f"Next up is {self.current_round_queue[0].get_name()}")
     def perform_attack(self, bot, opponents):
         """"
         Performs a single attack of the given bot, with the available opponents.
@@ -90,7 +104,7 @@ class BattleGame:
             target, ammo = bot.attack(opponents)
         except Exception as e:
             # If attacker function raised an error
-            print(f"ERROR! Attacker {bot.get_name()} function crashed ({e})")
+            self.log(f"ERROR! Attacker {bot.get_name()} function crashed ({e})")
             attack_is_legal = False
         else:
             # If didn't crash, check that attack is legal
@@ -98,7 +112,7 @@ class BattleGame:
 
         # Perform the attack.
         if attack_is_legal:
-            print(f"{bot.get_name()} is attacking {target.get_name()} with {ammo} ammo!")
+            self.log(f"{bot.get_name()} is attacking {target.get_name()} with {ammo} ammo!")
             self.gui.shoot(bot, target, ammo)
             target.take_attack(int(ammo))
             bot.deduct_ammo(int(ammo))
@@ -106,9 +120,9 @@ class BattleGame:
                 bot.add_ammo(BattleGame.bonus_for_destroy)
                 bot.add_health(BattleGame.bonus_for_destroy)
                 self.gui.remove_bot(target)
-                print(f"{target.get_name()} was destroyed! {bot.get_name()} awarded with {BattleGame.bonus_for_destroy} bonus ammo and health!")
+                self.log(f"{target.get_name()} was destroyed! {bot.get_name()} awarded with {BattleGame.bonus_for_destroy} bonus ammo and health!")
         else:
-            print(f"Skipping {bot.get_name()}..")
+            self.log(f"Skipping {bot.get_name()}..")
 
     def game_is_over(self):
         """"
@@ -118,14 +132,14 @@ class BattleGame:
         # If all dead but one, or all dead
 
         if len(alive_bots) <= 1:
-            print("Only one bot is remained alive!")
+            self.log("Only one bot is remained alive!")
             return True
 
         # If all the ammos combined is less than the lowest bots' health, game is over
         min_health = min([bot.get_health() for bot in alive_bots])
         total_ammos = sum([bot.get_ammo() for bot in alive_bots])
         if total_ammos < min_health:
-            print("No one has enough ammo to kill another bot")
+            self.log("No one has enough ammo to kill another bot")
             return True
 
         return False
@@ -144,23 +158,26 @@ class BattleGame:
         Plays all rounds of the game, until it ends
         """
         # Initial health display
-        print("Initial health of bots:")
+        self.log("Welcome to a new battle of the bots!")
         self.print_health()
         self.gui.show()
 
 
     def play_next_turn(self):
         if not self.game_is_over():
+            self.gui.disable_next_move_button()
             self.battle_round()
+
             # Update gui
             self.gui.update()
+            self.gui.enable_next_move_button()
         else:
-            print("Game is over!")
+            self.log("Game is over!")
             self.gui.disable_next_move_button()
             # Announce the winner
             winners = self.the_winners()
             if len(winners) == 1:
-                print(f"The winner is {winners[0].get_name()}!")
+                self.log(f"The winner is {winners[0].get_name()}!")
             else:
                 for i, bot in enumerate(winners, 1):
-                    print(f"Winner #{i} is {bot.get_name()}!")
+                    self.log(f"Winner #{i} is {bot.get_name()}!")

@@ -2,6 +2,8 @@ import random
 from PyQt5.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget
 from PyQt5.QtGui import QPainter, QPixmap, QBrush, QColor, QPen
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QEventLoop
+from PyQt5.QtWidgets import QTextEdit
+from PyQt5.QtWidgets import QLabel
 
 class SpaceBattleUI(QMainWindow):
     animation_complete = pyqtSignal()  # Signal to indicate animation completion
@@ -34,27 +36,95 @@ class SpaceBattleUI(QMainWindow):
 
         # Load images
         self.bg_image = QPixmap("background.jpg")
-        self.bot_image = QPixmap("bot.png").scaled(50, 50, Qt.KeepAspectRatio)
+        self.bot_image = QPixmap("ufo.png").scaled(50, 50, Qt.KeepAspectRatio)
 
         self.initUI()
 
+    from PyQt5.QtWidgets import QVBoxLayout, QSpacerItem, QSizePolicy, QTextEdit
+
     def initUI(self):
-        main_layout = QVBoxLayout()  # Create the main vertical layout
+        self.central_widget = QWidget(self)
+        self.setCentralWidget(self.central_widget)
 
-        self.central_widget = QWidget(self)  # Create a central widget for the game area
-        self.setCentralWidget(self.central_widget)  # Set the central widget for the main window
-
-        game_area_layout = QVBoxLayout(self.central_widget)  # Create a layout for the game area
+        # Full vertical layout for the window
+        game_area_layout = QVBoxLayout()
         self.central_widget.setLayout(game_area_layout)
 
-        self.next_move_button = QPushButton("Next Move")  # Create the "Next Move" button
-        self.next_move_button.clicked.connect(self.game_controller.play_next_turn)
+        # Spacer that takes all the space and pushes log box + button down
+        game_area_layout.addStretch(1)
 
-        game_area_layout.addStretch(1)  # Add stretch to push the button to the bottom
-        game_area_layout.addWidget(self.next_move_button)  # Add the button at the bottom
+        # 🌟 Round Label (Top-Left Corner, Light Style)
+        self.round_label = QLabel("🌀 Round 1", self)
+        self.round_label.move(20, 20)
+        self.round_label.setFixedSize(160, 40)
+        self.round_label.setAlignment(Qt.AlignCenter)
+        self.round_label.setStyleSheet("""
+            QLabel {
+                background-color: #ffffff;
+                color: #333333;
+                font-size: 18px;
+                font-weight: bold;
+                font-family: 'Segoe UI', sans-serif;
+                border: 2px solid #cccccc;
+                border-radius: 10px;
+                padding: 6px;
+                box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.2);
+            }
+        """)
+
+        # 📜 Log box (just above button)
+        self.log_box = QTextEdit()
+        self.log_box.setReadOnly(True)
+        self.log_box.setStyleSheet("""
+            QTextEdit {
+                background-color: #121212;
+                color: #eeeeee;
+                font-family: Consolas, monospace;
+                font-size: 16px;  /* ⬅️ Bumped from 13px to 16px */
+                padding: 12px;
+                border: 1px solid #2e2e2e;
+                border-radius: 8px;
+            }
+        """)
+        self.log_box.setFixedHeight(160)
+        game_area_layout.addWidget(self.log_box)
+
+        # 🚀 Next Move button
+        self.next_move_button = QPushButton("Next Move")
+        self.next_move_button.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                font-size: 18px;
+                font-weight: bold;
+                padding: 12px 24px;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+            QPushButton:pressed {
+                background-color: #3e8e41;
+            }
+            QPushButton:disabled {
+                background-color: #a5d6a7;
+                color: #ffffff;
+                opacity: 0.6;
+            }
+        """)
+        self.next_move_button.setMinimumHeight(50)
+        self.next_move_button.clicked.connect(self.game_controller.play_next_turn)
+        game_area_layout.addWidget(self.next_move_button)
 
         self.assign_predefined_positions()
 
+    def log_message(self, message):
+        print(message)  # Debug line
+        self.log_box.append(f"➤ {message}")
+        self.log_box.verticalScrollBar().setValue(self.log_box.verticalScrollBar().maximum())
+
+    def update_round_display(self, round_number):
+        self.round_label.setText(f"🌀 Round {round_number}")
     def assign_predefined_positions(self):
         for bot, position in zip(self.bots_obj, self.predefined_positions):
             self.add_bot(bot, position)
@@ -70,7 +140,9 @@ class SpaceBattleUI(QMainWindow):
 
             # Draw bot name
             bot_font = painter.font()
-            bot_font.setPointSize(12)  # Set the font size to 12 or any desired size
+            bot_font.setFamily("Segoe UI")
+            bot_font.setPointSize(13)  # Set the font size to 12 or any desired size
+            bot_font.setBold(False)
             painter.setFont(bot_font)
             painter.setPen(Qt.white)
             painter.drawText(x, y - 15, bot_obj.get_name())
@@ -79,39 +151,90 @@ class SpaceBattleUI(QMainWindow):
             health = int(bot_obj.get_health())
             health_width = health * 2  # Wider health bar (scale width to 200 for full health)
 
-            # Determine health bar color
+            # Health bar settings
+            health = int(bot_obj.get_health())
+            health_bar_full_width = 100
+            health_bar_height = 18
+            health_x = x
+            health_y = y - 7
+
+            # Background bar
+            painter.setBrush(QColor(60, 60, 60))
+            painter.setPen(Qt.NoPen)
+            painter.drawRoundedRect(health_x, health_y, health_bar_full_width, health_bar_height, 9, 9)
+
+            # Health color
             if health > 75:
-                painter.setBrush(QBrush(QColor(0, 255, 0)))  # Green
+                health_color = QColor(0, 200, 0)
             elif health > 50:
-                painter.setBrush(QBrush(QColor(255, 255, 0)))  # Yellow
+                health_color = QColor(255, 215, 0)
             elif health > 25:
-                painter.setBrush(QBrush(QColor(255, 165, 0)))  # Orange
+                health_color = QColor(255, 140, 0)
             else:
-                painter.setBrush(QBrush(QColor(255, 0, 0)))  # Red
+                health_color = QColor(220, 20, 60)
 
-            painter.drawRect(x, y - 10, health_width, 20)  # Increase height of health bar
+            # Filled health
+            health_width = int((health / 100) * health_bar_full_width)
+            painter.setBrush(health_color)
+            painter.drawRoundedRect(health_x, health_y, health_width, health_bar_height, 9, 9)
 
+            # Draw health percentage text (centered)
+            painter.setPen(QColor(255, 255, 255))
+            font = painter.font()
+            font.setPointSize(9)
+            font.setBold(True)
+            painter.setFont(font)
+            text = f"{health}%"
+            text_width = painter.fontMetrics().width(text)
+            text_x = health_x + (health_bar_full_width - text_width) // 2
+            text_y = health_y + health_bar_height - 5
+            painter.drawText(text_x, text_y, text)
 
-
-            # Draw health percentage
-            painter.setPen(QPen(QColor(107, 107, 107)))
-            painter.drawText(x + 5, y + 5, f"{health}%")  # Percentage inside the bar
 
             # Draw ammo count
             ammo_font = painter.font()
+            ammo_font.setBold(True)
+            ammo_font.setFamily("Segoe UI")
             ammo_font.setPointSize(10)  # Set the font size to 12 or any desired size
             painter.setFont(ammo_font)
             painter.setPen(QPen(QColor(240, 240, 240)))
-            painter.drawText(x + 10, y + 60, f"Ammo: {bot_obj.get_ammo()}")
+            painter.drawText(x + 10, y + 60, f"{bot_obj.get_ammo()} 🔫")
 
         if self.laser_animation_active and self.laser_current_pos:
-            pen = painter.pen()
-            pen.setWidth(self.laser_thickness)
-            pen.setColor(QColor(255, 0, 0, int(self.laser_opacity * 255)))
-            painter.setPen(pen)
-            painter.drawLine(int(self.laser_start_pos[0]), int(self.laser_start_pos[1]),
-                             int(self.laser_current_pos[0]), int(self.laser_current_pos[1]))
+            x1, y1 = map(int, self.laser_start_pos)
+            x2, y2 = map(int, self.laser_current_pos)
 
+            # Choose colors based on thickness (ammo power)
+            if self.laser_thickness == 1:
+                core_color = QColor(255, 0, 0)  # Red
+                glow_color = QColor(255, 100, 100, 80)
+            elif self.laser_thickness == 2:
+                core_color = QColor(255, 140, 0)  # Orange
+                glow_color = QColor(255, 180, 100, 80)
+            elif self.laser_thickness == 3:
+                core_color = QColor(255, 255, 0)  # Yellow
+                glow_color = QColor(255, 255, 150, 80)
+            else:
+                core_color = QColor(0, 255, 255)  # Cyan
+                glow_color = QColor(100, 255, 255, 80)
+
+            # Apply fading opacity
+            glow_color.setAlphaF(self.laser_opacity * 0.5)
+            core_color.setAlphaF(self.laser_opacity)
+
+            # Outer glow
+            glow_pen = QPen(glow_color)
+            glow_pen.setWidth(self.laser_thickness + 5)
+            glow_pen.setCapStyle(Qt.RoundCap)
+            painter.setPen(glow_pen)
+            painter.drawLine(x1, y1, x2, y2)
+
+            # Core beam
+            core_pen = QPen(core_color)
+            core_pen.setWidth(self.laser_thickness)
+            core_pen.setCapStyle(Qt.RoundCap)
+            painter.setPen(core_pen)
+            painter.drawLine(x1, y1, x2, y2)
     def add_bot(self, bot, position):
         name = bot.get_name()
         x, y = position
@@ -202,3 +325,6 @@ class SpaceBattleUI(QMainWindow):
 
     def disable_next_move_button(self):
         self.next_move_button.setEnabled(False)
+
+    def enable_next_move_button(self):
+        self.next_move_button.setEnabled(True)
