@@ -1,6 +1,4 @@
-<aside>
-<img src="/icons/alien-pixel_purple.svg" alt="/icons/alien-pixel_purple.svg" width="40px" /> **OMG! Create Your BattleBot!**
-</aside>
+# Battle of the Bots 👾
 
 ## Game Rules
 
