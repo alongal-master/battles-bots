@@ -11,9 +11,7 @@ def main():
     bot1 = bots.RandomAttacker("Randomizied 1")
     bot2 = bots.RandomAttacker("Randomizied 2")
     bot3 = bots.RandomAttacker("Randomizied 3")
-    bot4 = bots.RandomAttacker("Randomizied 2")
-    bot5 = bots.RandomAttacker("Randomizied 3")
-    bot_list = [bot1, bot2, bot3, bot4, bot5]
+    bot_list = [bot1, bot2, bot3]
 
     new_game = game.BattleGame(bot_list)
     new_game.start()
