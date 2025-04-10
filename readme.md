@@ -10,9 +10,15 @@
 * **Ammo & Damage:** Ammo used = Damage dealt. Attacker loses ammo, target loses health.
 * **Destruction Bonus:** Destroying a bot grants +20 Ammo and +20 Health.
 
+## BattleBot Interface (methods)
+You can call those methods of other bots.
+* `get_name() → str`: Returns bot's name.
+* `get_health() → int`: Returns current health.
+* `get_ammo() → int`: Returns current ammo.
+* `is_alive() → bool`: Returns `True` if alive, `False` otherwise.
 
 
-## 🔵 Create Your Bot
+## Create Your Bot
 
 * **1. Clonne this repo.**
 * **2. Setup & Run:** Create a PyCharm project and run the `main` file.
@@ -29,7 +35,7 @@
 * **7. Local Game:** Run a game with your bot and `RandomAttacker` bots.
 * **8. Refine Strategy:** Adjust your `attack` logic if you lose.
 
-## 🟠 Submit Your Bot
+## Submit Your Bot
 
 * **1. Local Test:** Ensure your bot works as expected locally and not crashing (!).
 * **2. Share Code:** Upload your full code to [codefile.io](https://codefile.io/).
