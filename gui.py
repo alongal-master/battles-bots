@@ -36,7 +36,7 @@ class SpaceBattleUI(QMainWindow):
 
         # Load images
         self.bg_image = QPixmap("background.jpg")
-        self.bot_image = QPixmap("ufo.png").scaled(50, 50, Qt.KeepAspectRatio)
+        self.bot_image = QPixmap("ufo.png").scaled(70, 70, Qt.KeepAspectRatio, Qt.SmoothTransformation)
 
         self.initUI()
 
@@ -136,12 +136,15 @@ class SpaceBattleUI(QMainWindow):
         for bot_obj, location in self.bots.items():
             x, y = location
             # Draw bot image
-            painter.drawPixmap(x, y, self.bot_images[bot_obj])
+
+
+            painter.setOpacity(1.0)
+            painter.drawPixmap(x + 25, y + 15, self.bot_images[bot_obj])
 
             # Draw bot name
             bot_font = painter.font()
             bot_font.setFamily("Segoe UI")
-            bot_font.setPointSize(13)  # Set the font size to 12 or any desired size
+            bot_font.setPointSize(14)  # Set the font size to 12 or any desired size
             bot_font.setBold(False)
             painter.setFont(bot_font)
             painter.setPen(Qt.white)
@@ -153,8 +156,8 @@ class SpaceBattleUI(QMainWindow):
 
             # Health bar settings
             health = int(bot_obj.get_health())
-            health_bar_full_width = 100
-            health_bar_height = 18
+            health_bar_full_width = 140
+            health_bar_height = 22
             health_x = x
             health_y = y - 7
 
@@ -181,7 +184,7 @@ class SpaceBattleUI(QMainWindow):
             # Draw health percentage text (centered)
             painter.setPen(QColor(255, 255, 255))
             font = painter.font()
-            font.setPointSize(9)
+            font.setPointSize(12)
             font.setBold(True)
             painter.setFont(font)
             text = f"{health}%"
@@ -195,10 +198,10 @@ class SpaceBattleUI(QMainWindow):
             ammo_font = painter.font()
             ammo_font.setBold(True)
             ammo_font.setFamily("Segoe UI")
-            ammo_font.setPointSize(10)  # Set the font size to 12 or any desired size
+            ammo_font.setPointSize(15)  # Set the font size to 12 or any desired size
             painter.setFont(ammo_font)
             painter.setPen(QPen(QColor(240, 240, 240)))
-            painter.drawText(x + 10, y + 60, f"{bot_obj.get_ammo()} 🔫")
+            painter.drawText(x + 25, y + 115, f"{bot_obj.get_ammo()} 🔫")
 
         if self.laser_animation_active and self.laser_current_pos:
             x1, y1 = map(int, self.laser_start_pos)
@@ -246,13 +249,17 @@ class SpaceBattleUI(QMainWindow):
         self.update()  # Schedule a repaint to update the GUI
 
     def create_colored_bot_image(self, bot):
-        color = QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-        image = self.bot_image.copy()
-        painter = QPainter(image)
-        painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
-        painter.fillRect(image.rect(), color)
+        base = self.bot_image.copy()
+
+        # Create a tinted version
+        tint_color = QColor(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255),
+                            100)  # Last value = alpha
+        painter = QPainter(base)
+        painter.setCompositionMode(QPainter.CompositionMode_Overlay)  # Soft blend
+        painter.fillRect(base.rect(), tint_color)
         painter.end()
-        return image
+
+        return base
 
     def shoot(self, bot1, bot2, ammo):
         if bot1 in self.bots and bot2 in self.bots:

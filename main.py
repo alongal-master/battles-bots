@@ -8,10 +8,12 @@ def main():
     app = QApplication(sys.argv)
 
     # Instantiate some SpaceBots (use your own SpaceBot class here)
-    bot1 = bots.RandomAttacker("Randomizied")
-    bot2 = bots.AttackTheWeakest("AttackTheWeakest")
-    bot3 = bots.SuperSmart("Smart")
-    bot_list = [bot1, bot2, bot3]
+    bot1 = bots.RandomAttacker("Randomizied 1")
+    bot2 = bots.RandomAttacker("Randomizied 2")
+    bot3 = bots.RandomAttacker("Randomizied 3")
+    bot4 = bots.RandomAttacker("Randomizied 2")
+    bot5 = bots.RandomAttacker("Randomizied 3")
+    bot_list = [bot1, bot2, bot3, bot4, bot5]
 
     new_game = game.BattleGame(bot_list)
     new_game.start()
